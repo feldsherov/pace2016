@@ -3,8 +3,12 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <cassert>
+#include <unistd.h>
+#include <cstdlib>
 
 #include "graph.h"
+
+int seed;
 
 bool deterministicBranchByMultiplyEdges(Graph &g, int k, std::vector<int> &ans);
 
@@ -249,8 +253,26 @@ int minFeedbackVertexSetSize(Graph &g, std::vector<int> &ans) {
     return n - 1;
 }
 
-int main() {
-    srand(179);
+void init(int argc, char **argv) {
+    char op;
+
+    seed = 179;
+
+    while ( (op = getopt(argc, argv, "s:")) ) {
+        switch(op) {
+            case 's':
+                seed = atoi(optarg);
+                break;
+            case '?':
+                std::cout << "Unexpected parametr: " << op << std::endl;
+                exit(0);
+        }
+    }
+
+    srand(seed);
+}
+
+int main(int argc, char **argv) {
     Graph g;
     std::vector<int> ans;
     readGraph(std::cin, g);
