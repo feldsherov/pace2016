@@ -3,111 +3,10 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <cassert>
-#include <random>
 
-class Graph {
-    std::unordered_map<int, std::unordered_multiset<int> > graph;
-    std::minstd_rand lce_gen;
-    int _edgesCount, _recordsCount;
-public:
-    Graph();
-    int vertexCount();
-    int edgesCount();
-    bool hasEdge(int b, int e);
-    void addEdge(int b, int e);
-    void eraseVertex(int v);
-    void getRandomEdge(int &b, int &e);
-    const std::unordered_multiset<int> & getAdjacentList(int v);
-    std::unordered_map<int, std::unordered_multiset<int> >::const_iterator vertexIteratorBegin();
-    std::unordered_map<int, std::unordered_multiset<int> >::const_iterator vertexIteratorEnd();
-};
+#include "graph.h"
 
-Graph::Graph() {
-    _edgesCount = _recordsCount = 0;
-}
-
-bool Graph::hasEdge(int b, int e) {
-    if (! graph.count(b)) {
-        return false;
-    }
-    return static_cast<bool>(graph[b].count(e));
-}
-
-void Graph::addEdge(int b, int e) {
-    ++_edgesCount;
-    ++_recordsCount;
-
-    graph[b].insert(e);
-    if (b != e) {
-        ++_recordsCount;
-        graph[e].insert(b);
-    }
-}
-
-int Graph::vertexCount() {
-    return graph.size();
-}
-
-int Graph::edgesCount() {
-    return _edgesCount;
-}
-
-void Graph::getRandomEdge(int &b, int &e) {
-    std::uniform_int_distribution<> udistr(0, _recordsCount - 1);
-
-    int edgeNumber = udistr(lce_gen);
-
-    for (auto vertexIterator = graph.begin(); vertexIterator != graph.end(); ++vertexIterator) {
-        auto &adjList = vertexIterator->second;
-        if (edgeNumber >= adjList.size()) {
-            edgeNumber -= adjList.size();
-        }
-        else {
-            auto it = adjList.begin();
-            for (int i = 0; i < edgeNumber; ++i) {
-                it++;
-            }
-
-            b = vertexIterator->first;
-            e = *it;
-            return;
-        }
-    }
-
-    assert(false);
-}
-
-void Graph::eraseVertex(int v) {
-    if (! graph.count(v)) {
-        return;
-    }
-
-    for (auto &target: graph[v]) {
-        if (target != v) {
-            assert(graph[target].count(v));
-
-            auto it = graph[target].find(v);
-            graph[target].erase(it);
-            _recordsCount -= 1;
-        }
-    }
-
-    _edgesCount -= graph[v].size();
-    _recordsCount -= graph[v].size();
-    graph.erase(v);
-}
-
-const std::unordered_multiset<int> & Graph::getAdjacentList(int v) {
-    return graph[v];
-}
-
-std::unordered_map<int, std::unordered_multiset<int> >::const_iterator Graph::vertexIteratorBegin() {
-    return graph.begin();
-}
-
-std::unordered_map<int, std::unordered_multiset<int> >::const_iterator Graph::vertexIteratorEnd() {
-    return graph.end();
-}
+bool deterministicBranchByMultiplyEdges(Graph &g, int k, std::vector<int> &ans);
 
 void readGraph(std::istream &inp, Graph &g) {
     int b, e;
@@ -180,7 +79,7 @@ int cutLinkVertexes(Graph &g) {
     return deletedLinksVerteces;
 }
 
-int cutSelfLoops(Graph &g) {
+std::vector<int> cutSelfLoops(Graph &g) {
     std::vector<int> selfLoops;
     for (auto vertexIterator = g.vertexIteratorBegin(); vertexIterator != g.vertexIteratorEnd(); ++vertexIterator) {
         auto &adjList = vertexIterator->second;
@@ -193,7 +92,7 @@ int cutSelfLoops(Graph &g) {
         g.eraseVertex(vertex);
     }
 
-    return selfLoops.size();
+    return std::move(selfLoops);
 }
 
 void printAdjacentList(std::ostream &outp, Graph &g) {
@@ -218,33 +117,73 @@ void printEdgeList(std::ostream &outp, Graph &g) {
     }
 }
 
-bool beckerSingleGuess(Graph &g, int k) {
-    Graph g_new = g;
-    cutLeafs(g_new);
-    cutLinkVertexes(g_new);
+int makeGraphRich(Graph &g, std::vector<int> &ans) {
+    int deletedVertices = 0;
+    std::vector<int> selfLoops;
 
-    int cntSelfLoops = cutSelfLoops(g_new);
-    k -= cntSelfLoops;
+    bool continueFlag = true;
+
+    while (continueFlag) {
+        continueFlag = false;
+        continueFlag = continueFlag || (cutLeafs(g) > 0);
+        continueFlag = continueFlag || (cutLinkVertexes(g) > 0);;
+
+        selfLoops = cutSelfLoops(g);
+        ans.insert(ans.end(), selfLoops.begin(), selfLoops.end());
+        deletedVertices += selfLoops.size();
+        continueFlag = continueFlag || (selfLoops.size() > 0);
+    }
+
+    return deletedVertices;
+}
+
+bool beckerSingleGuess(Graph &g, int k, std::vector<int> &ans) {
+    Graph g_new = g;
+    int countDeletedSelfLoops = makeGraphRich(g_new, ans);
+    k -= countDeletedSelfLoops;
+
 
     if (k < 0) {
+        ans.resize(ans.size() - countDeletedSelfLoops);
         return false;
     }
     if (g_new.vertexCount() == 0) {
         return true;
     }
 
-    int b, e, res;
-    g_new.getRandomEdge(b, e);
-    res =  (rand() % 2 ? b : e);
-    g_new.eraseVertex(res);
-    return beckerSingleGuess(g_new, k - 1);
+    bool sucessFlag;
+    if (g_new.countMultiplyEdges()) {
+        sucessFlag = deterministicBranchByMultiplyEdges(g_new, k, ans);
+    }
+    else {
+        int b, e, res;
+        g_new.getRandomEdge(b, e);
+
+        res = (rand() % 2 ? b : e);
+
+        ans.push_back(res);
+        g_new.eraseVertex(res);
+
+        sucessFlag = beckerSingleGuess(g_new, k - 1, ans);
+        if (!sucessFlag) {
+            ans.pop_back();
+        }
+    }
+    if (!sucessFlag) {
+        ans.resize(ans.size() - countDeletedSelfLoops);
+    }
+
+    return sucessFlag;
 }
 
-bool beckerGuess(Graph &g, int k) {
+bool beckerGuess(Graph &g, int k, std::vector<int> &ans) {
+#ifdef DEBUG
+    std::cerr << "Becker k = " << k << std::endl;
+#endif
     const int c = 30;
     long long maxit = (1l << (2 * k)); // 4^k steps
     for (int step = 0; step < c*maxit; ++step) {
-        if (beckerSingleGuess(g, k)) {
+        if (beckerSingleGuess(g, k, ans)) {
             return true;
         }
     }
@@ -252,10 +191,58 @@ bool beckerGuess(Graph &g, int k) {
     return false;
 }
 
-int minFeedbackVertexSetSize(Graph &g) {
+bool deterministicBranchByMultiplyEdges(Graph &g, int k, std::vector<int> &ans) {
+    #ifdef DEBUG
+    std::cerr << "deterministicBranchByMultiplyEdges k = " << k << std::endl;
+    #endif
+    Graph g_new = g;
+    int countDeletedSelfLoops = makeGraphRich(g_new, ans);
+    k -= countDeletedSelfLoops;
+
+    if (k < 0) {
+        ans.resize(ans.size() - countDeletedSelfLoops);
+        return false;
+    }
+    if (g_new.vertexCount() == 0) {
+        return true;
+    }
+
+    if (!g_new.countMultiplyEdges()) {
+        bool sucessFlag = beckerGuess(g_new, k, ans);
+        if (!sucessFlag) {
+            ans.resize(ans.size() - countDeletedSelfLoops);
+        }
+        return sucessFlag;
+    }
+    auto multiplyEdge = g_new.anyMultiplyEdge();
+    int b = multiplyEdge.first, e = multiplyEdge.second;
+
+    Graph g_without_b = g_new;
+    Graph g_without_e = g_new;
+
+    g_without_b.eraseVertex(b);
+    ans.push_back(b);
+    if(deterministicBranchByMultiplyEdges(g_without_b, k - 1, ans)) {
+        return true;
+    }
+    ans.pop_back();
+
+    g_without_e.eraseVertex(e);
+    ans.push_back(e);
+    if(deterministicBranchByMultiplyEdges(g_without_e, k - 1, ans)) {
+        return true;
+    }
+    ans.pop_back();
+
+    ans.resize(ans.size() - countDeletedSelfLoops);
+
+    return false;
+}
+
+int minFeedbackVertexSetSize(Graph &g, std::vector<int> &ans) {
     int n = g.vertexCount();
-    for (int k = 1; k < n - 1; ++k) {
-        if (beckerGuess(g, k)) {
+    for (int k = 0; k < n - 1; ++k) {
+        if (deterministicBranchByMultiplyEdges(g, k, ans)) {
             return k;
         }
     }
@@ -265,7 +252,14 @@ int minFeedbackVertexSetSize(Graph &g) {
 int main() {
     srand(179);
     Graph g;
+    std::vector<int> ans;
     readGraph(std::cin, g);
-    std::cout << minFeedbackVertexSetSize(g) << std::endl;
+    std::cout << minFeedbackVertexSetSize(g, ans) << std::endl;
+#ifdef FULLANS
+    for (int &v: ans) {
+        std::cout << v << " ";
+    }
+    std::cout << std::endl;
+#endif
     return 0;
 }
