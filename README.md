@@ -15,7 +15,7 @@ For run \<path_to_file\>/fsolve < \<path to instance\>.graph. It outputs size of
 
 # Description
 
-That is an implementation of algorithm by Becker et al. with optimized processing of multiple edges.
+That is an implementation of algorithm by Becker with optimized processing of multiple edges.
 
 Namely, suppose A and B have several edges between them, hence A or B belongs to answer and we can recursively branch on two cases. That 
 allows improve complexity to  O(2^l * 4^(k-l)), where l is the size of maximal independent set of multiply edges. (Set of multiply edges, 
