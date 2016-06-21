@@ -8,6 +8,13 @@ else
 DEFINES =
 endif
 
+ifeq ($(COUNT), 1)
+DEFINES += -DCOUNTANS
+else
+DEFINES =
+endif
+
+
 DEFINES += -DFULLANS
 
 
