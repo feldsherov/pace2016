@@ -156,24 +156,19 @@ bool beckerSingleGuess(Graph &g, int k, std::vector<int> &ans) {
     }
 
     bool sucessFlag;
-    if (g_new.countMultiplyEdges()) {
-        sucessFlag = deterministicBranchByMultiplyEdges(g_new, k, ans);
-    }
-    else {
-        int b, e, res;
-        g_new.getRandomEdge(b, e);
+    int b, e, res;
+    g_new.getRandomEdge(b, e);
 
-        res = (rand() % 2 ? b : e);
+    res = (rand() % 2 ? b : e);
 
-        ans.push_back(res);
-        g_new.eraseVertex(res);
+    ans.push_back(res);
+    g_new.eraseVertex(res);
 
-        sucessFlag = beckerSingleGuess(g_new, k - 1, ans);
-        if (!sucessFlag) {
-            ans.pop_back();
-        }
-    }
+    sucessFlag = beckerSingleGuess(g_new, k - 1, ans);
     if (!sucessFlag) {
+        ans.pop_back();
+    }
+if (!sucessFlag) {
         ans.resize(ans.size() - countDeletedSelfLoops);
     }
 
