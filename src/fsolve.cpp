@@ -271,12 +271,16 @@ int main(int argc, char **argv) {
     Graph g;
     std::vector<int> ans;
     readGraph(std::cin, g);
+#ifdef COUNTANS
     std::cout << minFeedbackVertexSetSize(g, ans) << std::endl;
+#else
+    minFeedbackVertexSetSize(g, ans);
+#endif
+
 #ifdef FULLANS
     for (int &v: ans) {
-        std::cout << v << " ";
+        std::cout << v << std::endl;
     }
-    std::cout << std::endl;
 #endif
     return 0;
 }
