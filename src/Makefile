@@ -8,9 +8,7 @@ else
 DEFINES =
 endif
 
-ifeq ($(FULLANS), 1)
 DEFINES += -DFULLANS
-endif
 
 
 OBJECTS = graph.o fsolve.o
