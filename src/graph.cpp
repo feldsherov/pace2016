@@ -3,6 +3,33 @@
 Graph::Graph() {
     _edgesCount = _recordsCount = 0;
     _multiplyEdgesCount = 0;
+    _lastId = 0;
+}
+
+void Graph::addToDict(const std::string &b, std::string &e, int &ib, int &ie) {
+    if (_dict.count(b)) {
+        ib = _dict[b];
+    }
+    else {
+        _dict[b] = ib = _lastId++;
+        _idict[ib] = b;
+    }
+
+    if (_dict.count(e)) {
+        ie = _dict[e];
+    }
+    else {
+        _dict[e] = ie = _lastId++;
+        _idict[ie] = e;
+    }
+}
+
+int Graph::translate(const std::string &s) {
+    return (_dict.count(s) ? _dict[s] : -1);
+}
+
+std::string Graph::translate(int v) {
+    return (_idict.count(v) ? _idict[v] : "");
 }
 
 int Graph::vertexCount() {

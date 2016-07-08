@@ -12,8 +12,12 @@
 class Graph {
     std::unordered_map<int, std::unordered_multiset<int> > graph;
     std::unordered_map<int, std::unordered_multiset<int> > mutiplyEdges;
+    std::unordered_map<std::string, int> _dict;
+    std::unordered_map<int, std::string> _idict;
     std::minstd_rand lce_gen;
     int _edgesCount, _recordsCount, _multiplyEdgesCount;
+    int _lastId;
+
 public:
     Graph();
     int vertexCount();
@@ -21,6 +25,9 @@ public:
 
     bool hasEdge(int b, int e);
     void addEdge(int b, int e);
+    void addToDict(const std::string &b, std::string &e, int &ib, int &ie);
+    int translate(const std::string &s);
+    std::string translate(int s);
 
     void eraseVertex(int v);
 
