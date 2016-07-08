@@ -18,10 +18,10 @@ endif
 DEFINES += -DFULLANS
 
 
-OBJECTS = graph.o fsolve.o graph_operations.o 
+OBJECTS = graph.o fsolve.o graph_operations.o
 EXECUTABLES = fsolve
 
-all: $(OBJECTS)
+all: $(OBJECTS) test
 	$(CXX) $(OBJECTS) -o fsolve
 
 fsolve.o:
@@ -32,6 +32,9 @@ graph.o:
 
 graph_operations.o:
 	$(CXX) $(CFLAGS) $(DEFINES) graph_operations.cpp -c -o graph_operations.o
+
+test:
+	$(CXX) $(CFLAGS) fcheck.cpp -o fcheck
 
 clean:
 	rm -rf $(OBJECTS) $(EXECUTABLES)
