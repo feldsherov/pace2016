@@ -1,11 +1,15 @@
-CXX = g++ -g
+CXX = g++
 CFLAGS = -std=c++11
 LFLAGS =
 
 ifeq ($(DEBUG), 1)
 DEFINES = -DDEBUG
+CXX += -g -O0
 else
 DEFINES =
+CXX += -O2
+
+
 endif
 
 ifeq ($(COUNT), 1)
@@ -19,7 +23,7 @@ DEFINES += -DFULLANS
 
 
 OBJECTS = graph.o fsolve.o graph_operations.o
-EXECUTABLES = fsolve
+EXECUTABLES = fsolve fcheck
 
 all: $(OBJECTS) test
 	$(CXX) $(OBJECTS) -o fsolve

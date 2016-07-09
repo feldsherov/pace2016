@@ -38,16 +38,19 @@ void readGraph(std::istream &inp, std::unordered_map<std::string, std::vector<st
     }
 }
 
-bool hasCycle(std::string v, std::unordered_set<std::string> &ans,
+bool hasCycle(std::string v, std::string prev,
+                std::unordered_set<std::string> &ans,
                 std::unordered_map<std::string, std::vector<std::string>> &graph,
                 std::unordered_set<std::string> used) {
+    bool retFlag = false; // flag for check multiply vertices
     for (auto &el: graph[v]) {
         if (ans.count(el)) continue;
 
-        if (used.count(el)) return 1;
+        if ( (used.count(el) && prev != el) || (prev == el && retFlag) ) return 1;
+        if (prev == el) retFlag = 1;
 
         used.insert(el);
-        if (hasCycle(el, ans, graph, used)) {
+        if (!used.count(el) && hasCycle(el, v, ans, graph, used)) {
             return 1;
         }
     }
@@ -69,7 +72,7 @@ int check(std::unordered_set<std::string> &ans, std::unordered_map<std::string, 
     }
     auto v = graph.begin()->first;
     std::unordered_set<std::string> used;
-    return (hasCycle(v, ans, graph, used) == 0);
+    return (hasCycle(v, "", ans, graph, used) == 0);
 }
 
 int main(int argc, char **argv) {
