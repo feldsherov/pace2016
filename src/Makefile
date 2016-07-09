@@ -4,10 +4,10 @@ LFLAGS =
 
 ifeq ($(DEBUG), 1)
 DEFINES = -DDEBUG
-CXX += -g -O0
+CFLAGS += -g -O0
 else
 DEFINES =
-CXX += -O2
+CFLAGS += -O2
 
 
 endif
@@ -22,11 +22,15 @@ endif
 DEFINES += -DFULLANS
 
 
-OBJECTS = graph.o fsolve.o graph_operations.o
-EXECUTABLES = fsolve fcheck
+LIB_OBJECTS = graph.o  graph_operations.o
+OBJECTS = $(LIB_OBJECTS) fsolve.o
+EXECUTABLES = fsolve fcheck fslow
 
-all: $(OBJECTS) test
-	$(CXX) $(OBJECTS) -o fsolve
+all: $(OBJECTS) fcheck fslow
+	$(CXX) $(DEFINES) fsolve.o $(LIB_OBJECTS) -o fsolve
+
+fslow: $(OBJECTS)
+	$(CXX) $(CFLAGS) fslow.cpp $(LIB_OBJECTS) -o fslow
 
 fsolve.o:
 	$(CXX) $(CFLAGS) $(DEFINES) fsolve.cpp -c -o fsolve.o
@@ -37,7 +41,7 @@ graph.o:
 graph_operations.o:
 	$(CXX) $(CFLAGS) $(DEFINES) graph_operations.cpp -c -o graph_operations.o
 
-test:
+fcheck:
 	$(CXX) $(CFLAGS) fcheck.cpp -o fcheck
 
 clean:
