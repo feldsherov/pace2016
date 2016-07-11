@@ -33,7 +33,7 @@ public:
 
     void getRandomEdge(int &b, int &e);
 
-    int countMultiplyEdges();
+    int multiplyEdgesCount();
     std::pair<int, int> anyMultiplyEdge();
 
     const std::unordered_multiset<int> & getAdjacentList(int v);

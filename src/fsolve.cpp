@@ -78,7 +78,7 @@ bool deterministicBranchByMultiplyEdges(Graph &g, int k, std::vector<int> &ans) 
         return true;
     }
 
-    if (!g_new.countMultiplyEdges()) {
+    if (!g_new.multiplyEdgesCount()) {
         bool sucessFlag = beckerGuess(g_new, k, ans);
         if (!sucessFlag) {
             ans.resize(ans.size() - countDeletedSelfLoops);

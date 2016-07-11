@@ -116,7 +116,7 @@ void Graph::getRandomEdge(int &b, int &e) {
     assert(false);
 }
 
-int Graph::countMultiplyEdges() {
+int Graph::multiplyEdgesCount() {
     return _multiplyEdgesCount;
 }
 
