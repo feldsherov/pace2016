@@ -3,9 +3,10 @@
 https://pacechallenge.wordpress.com/track-b-feedback-vertex-set/
 
 # Compilation
-cd src 
 
-make
+git clone --recursive https://github.com/feldsherov/pace2016
+
+Than just run make in the repository root.
 
 # Run
 
